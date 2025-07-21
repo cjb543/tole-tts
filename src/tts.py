@@ -1,19 +1,19 @@
 from gtts import gTTS
 from pydub import AudioSegment
 from pydub.playback import play
+from dotenv import load_dotenv
 import io
 import pyaudio
 import vosk
 import json
 import os
+import sys
 import httpx
-import time
 import asyncio
-from dotenv import load_dotenv
 
 # Load env variables
 load_dotenv()
-OPENROUTER_KEY = os.getenv('OPENROUTER_KEY')
+TOLETTS_KEY = os.getenv('TOLETTS_KEY')
 OPENROUTER_URL = os.getenv('OPENROUTER_URL')
 
 # Microphone stream setup
@@ -56,7 +56,7 @@ async def post_with_retry(url, headers, payload, retries=3, delay=1):
 async def on_message(message):
     user_input = message.content[1:].strip().lower()
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_KEY}",
+        "Authorization": f"Bearer {TOLETTS_KEY}",
         "Content-Type": "application/json",
     }
     if "give me my mission" in user_input:
@@ -75,7 +75,7 @@ async def on_message(message):
     else:
         custom_prefix = "You are Toe-lay. Meow once. Respond briefly with a strange quip about popular video game, VALORANT. Start your phrase with 'Did somebody say VALORANT? I fucking love VALORANT...'"
     payload = {
-        "model": "deepseek/deepseek-chat-v3-0324:free",
+        "model": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
         "messages": [
             {
                 "role": "user",
@@ -96,7 +96,8 @@ async def on_message(message):
 
 
 async def main():
-    model_path = os.path.abspath("./vosk-model-small-en-us-0.15/")
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    model_path = os.path.join(base_path, "vosk-model-small-en-us-0.15")
     model = vosk.Model(model_path)
     rec = vosk.KaldiRecognizer(model, 16000)
     p = pyaudio.PyAudio()
